@@ -1,9 +1,22 @@
-#include "game.h"
+#define  _CRT_SECURE_NO_WARNINGS
 
-void Initboard(char board[ROWS][COLS], int r, int c, char character)
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define ROW 9
+#define COL 9
+
+#define ROWS ROW + 2
+#define COLS COL + 2
+
+#define EASY_BOOM 10
+
+void InitBoard(char board[ROWS][COLS], int r, int c, char character)
 {
 	int i = 0;
 	int j = 0;
+
 	for (i = 0; i < r; i++)
 	{
 		for (j = 0; j < c; j++)
@@ -13,9 +26,9 @@ void Initboard(char board[ROWS][COLS], int r, int c, char character)
 	}
 }
 
-void Printboard(char board[ROWS][COLS], int r, int c)
+void PrintBoard(char board[ROWS][COLS], int r, int c)
 {
-	printf("------扫雷游戏-----\n");
+	printf("------扫雷游戏----------\n");
 	int i = 0;
 	for (i = 0; i <= r; i++)
 	{
@@ -24,9 +37,9 @@ void Printboard(char board[ROWS][COLS], int r, int c)
 	printf("\n");
 	for (i = 1; i <= r; i++)
 	{
-		printf("%d ", i);
 		int j = 0;
-		for (j = 1; j <= c; j++)
+		printf("%d ", i);
+		for(j = 1; j <= c; j++)
 		{
 			printf("%c ", board[i][j]);
 		}
@@ -34,11 +47,11 @@ void Printboard(char board[ROWS][COLS], int r, int c)
 	}
 }
 
-void Setboom(char boom[ROWS][COLS], int r, int c)
+void SetBoom(char boom[ROWS][COLS], int r, int c)
 {
-	int num = EASY_COUNT;
-	
-	while (num--)
+	int num = EASY_BOOM;
+
+	while (num)
 	{
 		int x = rand() % r + 1;
 		int y = rand() % c + 1;
@@ -46,6 +59,7 @@ void Setboom(char boom[ROWS][COLS], int r, int c)
 		if (boom[x][y] == '0')
 		{
 			boom[x][y] = '1';
+			num--;
 		}
 	}
 }
@@ -57,44 +71,108 @@ int SumBoom(char boom[ROWS][COLS], int x, int y)
 		+ boom[x + 1][y] + boom[x + 1][y + 1] - 8 * '0';
 }
 
-void Fineboom(char boom[ROWS][COLS], char show[ROWS][COLS], int r, int c)
+void ClearBoom(char boom[ROWS][COLS], char show[ROWS][COLS], int r, int c)
 {
-	int num = EASY_COUNT;
-
+	int sum = 0;
 	int x = 0;
 	int y = 0;
-	int win = 0;
 
-	while (1)
+	while (sum < (r * c - EASY_BOOM))
 	{
+		printf("请输入你要排查的坐标:>");
 		scanf("%d %d", &x, &y);
+
 		if (x >= 1 && x <= r && y >= 1 && y <= c)
 		{
-			if (show[x][y] == '*')
+			if (boom[x][y] == '1')
 			{
-				char sum = SumBoom(boom, x, y) + '0';
-				show[x][y] = sum;
-				win++;
-			}
-			else if (boom[x][y] == '1')
-			{
-				printf("很遗憾，你被炸死了\n");
-				Printboard(boom, r, c);
+				printf("很遗憾，你被炸死了，游戏结束\n");
+				PrintBoard(boom, r, c);
+				break;
 			}
 			else
 			{
-				printf("该坐标已经被排查\n");
+				if (show[x][y] == '*')
+				{
+					int count = SumBoom(boom, x, y);
+					show[x][y] = count + '0';
+					PrintBoard(show, r, c);
+					sum++;
+				}
+				else
+				{
+					printf("坐标已经被排查\n");
+				}
 			}
 		}
 		else
 		{
-			printf("坐标非法，请重新输入\n");
-		}
-
-		if (win == (r * c - num))
-		{
-			printf("恭喜你，游戏胜利\n");
-			Printboard(boom, r, c);
+			printf("坐标非法\n");
 		}
 	}
+	if (sum == (r * c - EASY_BOOM))
+	{
+		printf("恭喜你，游戏胜利\n");
+		PrintBoard(boom, r, c);
+	}
+}
+void game()
+{
+	char boom[ROWS][COLS];
+	char show[ROWS][COLS];
+
+	//初始化棋盘
+	InitBoard(boom, ROWS, COLS, '0');
+	InitBoard(show, ROWS, COLS, '*');
+
+	/*InitBoard(boom, ROWS, COLS);
+	InitBoard(show, ROWS, COLS)*/;
+
+	//打印棋盘
+	//printf("-------展示棋盘--------\n");
+	PrintBoard(show, ROW, COL);
+	/*printf("-------雷棋盘----------\n");
+	PrintBoard(boom, ROW, COL);*/
+
+	//布置雷
+	SetBoom(boom, ROW, COL);
+	//PrintBoard(boom, ROW, COL);
+	// 
+	//扫雷
+	ClearBoom(boom, show, ROW, COL);
+}
+
+void menu()
+{
+	printf("*********************\n");
+	printf("****  1. play   *****\n");
+	printf("****  0. exit   *****\n");
+	printf("*********************\n");
+}	
+
+int main()
+{
+	int input = 0;
+	srand((unsigned int)time(NULL));
+
+	do
+	{
+		menu();
+		printf("请选择：>");
+		scanf("%d", &input);
+
+		switch (input)
+		{
+		case 1:
+			game();
+			break;
+		case 0:
+			printf("退出游戏\n");
+			break;
+		default:
+			printf("数字非法\n");
+		}
+	} while (input);
+
+	return 0;
 }
